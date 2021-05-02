@@ -26,6 +26,10 @@ const UserSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
+  educator: {
+    type: Boolean,
+    default: false,
+  },
 });
 
 UserSchema.virtual('password')

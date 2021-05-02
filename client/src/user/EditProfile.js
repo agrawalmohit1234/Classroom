@@ -10,6 +10,8 @@ import {makeStyles} from '@material-ui/core/styles';
 import auth from './../auth/auth-helper';
 import {read, update} from './api-user.js';
 import {Redirect} from 'react-router-dom';
+import Switch from '@material-ui/core/Switch';
+import {FormControlLabel} from '@material-ui/core';
 
 const useStyles = makeStyles((theme) => ({
   card: {
@@ -46,6 +48,7 @@ export default function EditProfile({match}) {
     open: false,
     error: '',
     redirectToProfile: false,
+    educator: false,
   });
   const jwt = auth.isAuthenticated();
 
@@ -63,7 +66,12 @@ export default function EditProfile({match}) {
       if (data && data.error) {
         setValues({...values, error: data.error});
       } else {
-        setValues({...values, name: data.name, email: data.email});
+        setValues({
+          ...values,
+          name: data.name,
+          email: data.email,
+          educator: data.educator,
+        });
       }
     });
     return function cleanup() {
@@ -76,6 +84,7 @@ export default function EditProfile({match}) {
       name: values.name || undefined,
       email: values.email || undefined,
       password: values.password || undefined,
+      educator: values.educator || undefined,
     };
     update(
       {
@@ -89,14 +98,18 @@ export default function EditProfile({match}) {
       if (data && data.error) {
         setValues({...values, error: data.error});
       } else {
-        setValues({...values, userId: data._id, redirectToProfile: true});
+        auth.updateUser(data, () => {
+          setValues({...values, userId: data._id, redirectToProfile: true});
+        });
       }
     });
   };
   const handleChange = (name) => (event) => {
     setValues({...values, [name]: event.target.value});
   };
-
+  const handleCheck = (event, checked) => {
+    setValues({...values, educator: checked});
+  };
   if (values.redirectToProfile) {
     return <Redirect to={'/user/' + values.userId} />;
   }
@@ -134,7 +147,21 @@ export default function EditProfile({match}) {
           onChange={handleChange('password')}
           margin="normal"
         />
-        <br />{' '}
+        <br />
+        <br />
+        <Typography variant="subtitle1" className={classes.subheading}>
+          I am an Educator
+        </Typography>
+        <FormControlLabel
+          control={
+            <Switch
+              classes={{checked: classes.checked, bar: classes.bar}}
+              checked={values.educator}
+              onChange={handleCheck}
+            />
+          }
+          label={values.educator ? 'Yes' : 'No'}
+        />{' '}
         {values.error && (
           <Typography component="p" color="error">
             <Icon color="error" className={classes.error}>
